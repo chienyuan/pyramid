@@ -23,29 +23,32 @@ type game interface {
   my_move()
   is_gameover() bool
   is_valid_move(string) bool
-  getboard(int) int
-  setboard(int)
-  getboardval() int
+}
+
+
+type board struct {
+  vals [15] int
 }
 
 type pyramid struct {
   //*root, *temp , *node_buff node struct
-  board    [15] int
+  //board    [15] int
+  board board
   root,temp,node_buff  node
   win[6299] uint
 }
 
-func (py pyramid) getboard(pos int) int {
-  return py.board[pos]
+func (b board) get(pos int) int {
+  return b.vals[pos]
 }
 
-func (py *pyramid) setboard(pos int) {
-  py.board[pos] = 1
+func (b *board) set(pos int) {
+  b.vals[pos] = 1
 }
 
-func (py pyramid) getboardval() int {
+func (b board) val() int {
   var sum int
-  for i,r := range py.board {
+  for i,r := range b.vals {
     sum +=  r * int(math.Pow(2,float64(i)) )
   }
   return sum
@@ -64,14 +67,14 @@ func (py pyramid ) display(){
   d := 5  // depth 
   t :=  0 // start token value 
   for i:= 0 ; i < d  ; i++ {
-    // print space
+    // print prefix space
     for k := 1 ; k < d - i ; k++ {
       p(" ")
     }
 
     // print token
     for j :=0 ; j <  i+1 ; j ++ {
-      if py.getboard(t) == 0 {
+      if py.board.get(t) == 0 {
         p(string(t+65))
       } else {
         p("*")
@@ -83,7 +86,7 @@ func (py pyramid ) display(){
     // print endl
     pl("")
   }
-  pl( py.getboardval())
+  pl( py.board.val())
 }
 
 func (py *pyramid ) you_move(){
@@ -109,7 +112,7 @@ func (py *pyramid ) you_move(){
   }
 
   for _, r := range str {
-    py.setboard( int(r - 65) )
+    py.board.set( int(r - 65) )
   }
 
   py.display()
@@ -127,7 +130,7 @@ func (py *pyramid) my_move(){
 
 func (py pyramid) is_gameover() bool {
   for i:=0 ; i < 15 ; i++ {
-    if py.getboard(i) == 0 {
+    if py.board.get(i) == 0 {
       return false
     }
   }
