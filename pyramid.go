@@ -4,6 +4,7 @@ import (
   "fmt"
   "bufio"
   "os"
+  "math"
   //"strings"
 )
 
@@ -22,6 +23,9 @@ type game interface {
   my_move()
   is_gameover() bool
   is_valid_move(string) bool
+  getboard(int) int
+  setboard(int)
+  getboardval() int
 }
 
 type pyramid struct {
@@ -30,6 +34,23 @@ type pyramid struct {
   root,temp,node_buff  node
   win[6299] uint
 }
+
+func (py pyramid) getboard(pos int) int {
+  return py.board[pos]
+}
+
+func (py *pyramid) setboard(pos int) {
+  py.board[pos] = 1
+}
+
+func (py pyramid) getboardval() int {
+  var sum int
+  for i,r := range py.board {
+    sum +=  r * int(math.Pow(2,float64(i)) )
+  }
+  return sum
+}
+
 
 //  0(0,4)
 //  1(1,3) 2(1,5) 
@@ -50,7 +71,7 @@ func (py pyramid ) display(){
 
     // print token
     for j :=0 ; j <  i+1 ; j ++ {
-      if py.board[t] == 0 {
+      if py.getboard(t) == 0 {
         p(string(t+65))
       } else {
         p("*")
@@ -62,6 +83,7 @@ func (py pyramid ) display(){
     // print endl
     pl("")
   }
+  pl( py.getboardval())
 }
 
 func (py *pyramid ) you_move(){
@@ -87,7 +109,7 @@ func (py *pyramid ) you_move(){
   }
 
   for _, r := range str {
-    py.board[r - 65 ] = 1 
+    py.setboard( int(r - 65) )
   }
 
   py.display()
@@ -105,7 +127,7 @@ func (py *pyramid) my_move(){
 
 func (py pyramid) is_gameover() bool {
   for i:=0 ; i < 15 ; i++ {
-    if py.board[i] == 0 {
+    if py.getboard(i) == 0 {
       return false
     }
   }
