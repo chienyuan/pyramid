@@ -151,28 +151,36 @@ func (py *pyramid) gen_valid_moves() {
 		{0,2,5},{2,5,9},{5,9,14},{1,4,8},{4,8,13},{3,7,12},
 		{3,4,5},{6,7,8},{7,8,9},{10,11,12},{11,12,13},{12,13,14}}
 
-  // TODO: need to skip already set token
 	// one token move
   var i = 0
+  var j = 0
   for i = 0; i < 15; i++ {
-    arr[i] = int(math.Pow(2,float64(i)) )
+    //  need to skip already set token
+    if py.board.get(i) == 0 {
+      arr[j] = int(math.Pow(2,float64(i)) )
+      j ++
+    }
   }
 
   // two token move
   for _, r := range temp2 {
-    arr[i] = int(math.Pow(2,float64(r[0])) + math.Pow(2,float64(r[1])))
-    i = i + 1
+    if py.board.get(r[0]) == 0 && py.board.get(r[1]) == 0  {
+      arr[j] = int(math.Pow(2,float64(r[0])) + math.Pow(2,float64(r[1])))
+      j = j + 1
+    }
   }
 
   // three token move
   for _, r := range temp3 {
-    arr[i] = int(math.Pow(2,float64(r[0])) +
+    if py.board.get(r[0]) == 0 && py.board.get(r[1]) == 0 && py.board.get(r[2]) == 0 {
+      arr[j] = int(math.Pow(2,float64(r[0])) +
                             math.Pow(2,float64(r[1])) +
                             math.Pow(2,float64(r[2])))
-    i = i + 1
+      j = j + 1
+    }
   }
   // slice the array
-  valid_arr := arr[:i]
+  valid_arr := arr[:j]
   sort.Ints(valid_arr)
   py.valid_moves = valid_arr
   fmt.Println("py.valid_moves=",py.valid_moves)
