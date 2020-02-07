@@ -5,6 +5,7 @@ import (
   "bufio"
   "os"
   "math"
+  "sort"
   //"strings"
 )
 
@@ -17,15 +18,9 @@ type node struct {
   value     int
 }
 
-type game interface {
-  display()
-  you_move()
-  my_move()
-  is_gameover() bool
-  is_valid_move(string) bool
-}
-
-
+// token vals 
+// 0 : free
+// 1 : non-free
 type board struct {
   vals [15] int
 }
@@ -36,6 +31,7 @@ type pyramid struct {
   board board
   root,temp,node_buff  node
   win[6299] uint
+  valid_moves[] int
 }
 
 func (b board) get(pos int) int {
@@ -90,7 +86,9 @@ func (py pyramid ) display(){
 }
 
 func (py *pyramid ) you_move(){
+  pl := fmt.Println
   p  := fmt.Print
+  py.gen_valid_moves()
   p("Please enter your move (A-N)? ")
   reader := bufio.NewReader(os.Stdin)
   var str string
@@ -98,12 +96,8 @@ func (py *pyramid ) you_move(){
     str,_ = reader.ReadString('\n')
     str = str[:len(str)-1]
 
+    pl("len(str)=",len(str))
     // only allow pick 1,2,3 token
-    if len(str) > 0 && len(str) <= 3 { 
-      break
-    }
-
-    // move validation
     if py.is_valid_move(str) {
       break
     }
@@ -119,11 +113,76 @@ func (py *pyramid ) you_move(){
 }
 
 func (py pyramid) is_valid_move ( str string) bool {
-  return true
+    if len(str) < 0 || len(str) > 3 { 
+      return false
+    }
+
+    var move int
+    for _, r := range str {
+      move += int( math.Pow(2,float64(r - 65) ) )
+    }
+    fmt.Println("move=",move)
+
+    for _,r := range py.valid_moves {
+      if move == r {
+        return true
+      }
+    }
+
+  return false
 }
 
+func (py *pyramid) gen_valid_moves() {
+  //    0
+  //   1 2
+  //  3 4 5
+  // 6 7 8 9
+  //a b c d e
+  // two token move data
+  var arr[63] int
+	var temp2 = [30][2]  int {
+	{0,1},{1,3},{3,6},{6,10},{2,4},{4,7},{7,11},{5,8},{8,12},{9,13},
+	{0,2},{2,5},{5,9},{9,14},{1,4},{4,8},{8,13},{3,7},{7,12},{6,11},
+	{1,2},{3,4},{4,5},{6,7},{7,8},{8,9},{10,11},{11,12},{12,13},{13,14}}
+
+	// three token move data
+	var temp3 = [18][3] int {
+		{0,1,3},{1,3,6},{3,6,10},{2,4,7},{4,7,11},{5,8,12},
+		{0,2,5},{2,5,9},{5,9,14},{1,4,8},{4,8,13},{3,7,12},
+		{3,4,5},{6,7,8},{7,8,9},{10,11,12},{11,12,13},{12,13,14}}
+
+  // TODO: need to skip already set token
+	// one token move
+  var i = 0
+  for i = 0; i < 15; i++ {
+    arr[i] = int(math.Pow(2,float64(i)) )
+  }
+
+  // two token move
+  for _, r := range temp2 {
+    arr[i] = int(math.Pow(2,float64(r[0])) + math.Pow(2,float64(r[1])))
+    i = i + 1
+  }
+
+  // three token move
+  for _, r := range temp3 {
+    arr[i] = int(math.Pow(2,float64(r[0])) +
+                            math.Pow(2,float64(r[1])) +
+                            math.Pow(2,float64(r[2])))
+    i = i + 1
+  }
+  // slice the array
+  valid_arr := arr[:i]
+  sort.Ints(valid_arr)
+  py.valid_moves = valid_arr
+  fmt.Println("py.valid_moves=",py.valid_moves)
+}
+
+
+// TODO: not done yet
 func (py *pyramid) my_move(){
   p := fmt.Println
+  py.gen_valid_moves()
   p("my move")
   py.display()
 }
@@ -141,6 +200,8 @@ func main(){
   pl := fmt.Println
 
   py := pyramid{}
+  pl("py.gen_valid_moves()=")
+  py.gen_valid_moves()
 
 	pl("Welcome to Pyramid game ")
 	pl("The Rules of Pyramid: Players alternate take out one to three ")
@@ -160,7 +221,7 @@ func main(){
         if py.is_gameover() {
           pl("I win")
         } else {
-          py.you_move()
+          py.my_move()
           if py.is_gameover() {
             pl("You win")
           }
