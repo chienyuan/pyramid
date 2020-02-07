@@ -5,6 +5,7 @@ import (
   "bufio"
   "os"
   "math"
+  "math/rand"
   "sort"
   //"strings"
 )
@@ -18,36 +19,48 @@ type node struct {
   value     int
 }
 
-// token vals 
+// token val 
+// start = 000000000000000 
 // 0 : free
 // 1 : non-free
 type board struct {
-  vals [15] int
+  val int
 }
 
 type pyramid struct {
-  //*root, *temp , *node_buff node struct
-  //board    [15] int
   board board
   root,temp,node_buff  node
   win[6299] uint
   valid_moves[] int
 }
 
+//     val= 111000000000
+//  pos 2 = 010000000000 and
+//    ret   010000000000 
+// so if pos == ret , return 1
 func (b board) get(pos int) int {
-  return b.vals[pos]
+  v := int(math.Pow(2,float64(pos)))
+  if ( v & b.val )  == v {
+    return 1
+  }
+  return 0
 }
 
 func (b *board) set(pos int) {
-  b.vals[pos] = 1
+  v := int(math.Pow(2,float64(pos)))
+  b.val |= v
 }
 
-func (b board) val() int {
-  var sum int
-  for i,r := range b.vals {
-    sum +=  r * int(math.Pow(2,float64(i)) )
-  }
-  return sum
+func (b *board) addvals(move int) {
+  b.val += move
+}
+
+func (b board) vals() int {
+  return b.val
+}
+
+func (b *board) reset() {
+  b.val = 0
 }
 
 
@@ -82,7 +95,7 @@ func (py pyramid ) display(){
     // print endl
     pl("")
   }
-  pl( py.board.val())
+  pl( py.board.vals())
 }
 
 func (py *pyramid ) you_move(){
@@ -187,11 +200,17 @@ func (py *pyramid) gen_valid_moves() {
 }
 
 
-// TODO: not done yet
 func (py *pyramid) my_move(){
   p := fmt.Println
   py.gen_valid_moves()
-  p("my move")
+
+  // TODO: add AI logic here
+  
+  pick := rand.Intn(len(py.valid_moves))
+  var move int = py.valid_moves[pick]
+  p("len(valid_moves)",len(py.valid_moves))
+  p("my move valid_moves[", pick ,"]=",move)
+  py.board.addvals(move)
   py.display()
 }
 
@@ -216,6 +235,7 @@ func main(){
 	pl("tokens in one line. Who takes the last one token is loser")
 
   for {
+    py.board.reset()
     reader := bufio.NewReader(os.Stdin)
     fmt.Print("Do you want to move first(y/n)?")
     ans,_ := reader.ReadByte()
