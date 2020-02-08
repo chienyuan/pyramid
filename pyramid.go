@@ -102,7 +102,7 @@ func (py pyramid ) display(){
   pl( py.board.vals())
 }
 
-func (py *pyramid ) you_move()  int{
+func (py *pyramid ) human_move()  int{
   pl := fmt.Println
   p  := fmt.Print
   py.gen_valid_moves()
@@ -209,7 +209,7 @@ func (py *pyramid) gen_valid_moves() {
 }
 
 
-func (py *pyramid) my_move() int{
+func (py *pyramid) compute_move(play bool) int{
   p := fmt.Println
   py.gen_valid_moves()
 
@@ -217,8 +217,10 @@ func (py *pyramid) my_move() int{
   
   pick := rand.Intn(len(py.valid_moves))
   var move int = py.valid_moves[pick]
-  p("len(valid_moves)",len(py.valid_moves))
-  p("my move valid_moves[", pick ,"]=",move)
+  if play {
+    p("len(valid_moves)",len(py.valid_moves))
+    p("my move valid_moves[", pick ,"]=",move)
+  }
   py.board.addvals(move)
   py.display()
   return move
@@ -233,7 +235,45 @@ func (py pyramid) is_gameover() bool {
   return true
 }
 
+
+// TODO: need to add game state, step , win strut
+func gen() (map[int]int,bool) {
+
+  steps := make(map[int]int)
+  py := pyramid{}
+  s := 0
+  win := false
+
+  for !py.is_gameover() {
+    steps[s]= py.compute_move(false);
+    s++
+    if py.is_gameover() {
+      win = true
+     } else {
+      steps[s]=py.compute_move(false)
+      s++
+      if py.is_gameover() {
+        win = false
+      }
+    }
+  }
+  return steps,win
+}
+
 func main(){
+
+  pl := fmt.Println
+  games := make(map[int] map[int]int)
+  var win bool
+  for i:=0 ; i < 100 ; i++ {
+    games[i],win = gen()
+  }
+  pl("games: win=",win," steps",games)
+
+  //play()
+}
+
+func play(){
   pl := fmt.Println
 
   py := pyramid{}
@@ -257,12 +297,12 @@ func main(){
       py.display()
       pl("OK ! You move first.")
       for !py.is_gameover() {
-        steps[s]= py.you_move();
+        steps[s]= py.human_move();
         s++
         if py.is_gameover() {
           pl("I win")
         } else {
-          steps[s]=py.my_move()
+          steps[s]=py.compute_move(true)
           s++
           if py.is_gameover() {
             pl("You win")
@@ -272,12 +312,12 @@ func main(){
     } else {
       pl(" OK ! I  move first.")
       for !py.is_gameover() {
-        steps[s]=py.my_move()
+        steps[s]=py.compute_move(true)
         s++
         if py.is_gameover() {
           pl("You win")
         } else  {
-          steps[s]=py.you_move()
+          steps[s]=py.human_move()
           s++
           if py.is_gameover() {
             pl("I win")
