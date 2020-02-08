@@ -19,6 +19,10 @@ type node struct {
   value     int
 }
 
+type game struct {
+  steps[] int
+}
+
 // token val 
 // start = 000000000000000 
 // 0 : free
@@ -98,20 +102,23 @@ func (py pyramid ) display(){
   pl( py.board.vals())
 }
 
-func (py *pyramid ) you_move(){
+func (py *pyramid ) you_move()  int{
   pl := fmt.Println
   p  := fmt.Print
   py.gen_valid_moves()
   p("Please enter your move (A-N)? ")
   reader := bufio.NewReader(os.Stdin)
   var str string
+  var move int
   for {
     str,_ = reader.ReadString('\n')
     str = str[:len(str)-1]
 
     pl("len(str)=",len(str))
     // only allow pick 1,2,3 token
-    if py.is_valid_move(str) {
+    var valid bool
+    move,valid =  py.is_valid_move(str)
+    if valid {
       break
     }
 
@@ -123,11 +130,13 @@ func (py *pyramid ) you_move(){
   }
 
   py.display()
+
+  return move
 }
 
-func (py pyramid) is_valid_move ( str string) bool {
+func (py pyramid) is_valid_move ( str string) ( int,bool ) {
     if len(str) < 0 || len(str) > 3 { 
-      return false
+      return 0,false
     }
 
     var move int
@@ -138,11 +147,11 @@ func (py pyramid) is_valid_move ( str string) bool {
 
     for _,r := range py.valid_moves {
       if move == r {
-        return true
+        return move ,true
       }
     }
 
-  return false
+  return move,false
 }
 
 func (py *pyramid) gen_valid_moves() {
@@ -200,7 +209,7 @@ func (py *pyramid) gen_valid_moves() {
 }
 
 
-func (py *pyramid) my_move(){
+func (py *pyramid) my_move() int{
   p := fmt.Println
   py.gen_valid_moves()
 
@@ -212,6 +221,7 @@ func (py *pyramid) my_move(){
   p("my move valid_moves[", pick ,"]=",move)
   py.board.addvals(move)
   py.display()
+  return move
 }
 
 func (py pyramid) is_gameover() bool {
@@ -240,16 +250,20 @@ func main(){
     fmt.Print("Do you want to move first(y/n)?")
     ans,_ := reader.ReadByte()
     _,_ = reader.ReadByte()
+    s     := 0
+    steps := make(map[int]int)
 
     if ans == 'y'  {
       py.display()
       pl("OK ! You move first.")
       for !py.is_gameover() {
-        py.you_move();
+        steps[s]= py.you_move();
+        s++
         if py.is_gameover() {
           pl("I win")
         } else {
-          py.my_move()
+          steps[s]=py.my_move()
+          s++
           if py.is_gameover() {
             pl("You win")
           }
@@ -258,11 +272,13 @@ func main(){
     } else {
       pl(" OK ! I  move first.")
       for !py.is_gameover() {
-        py.my_move()
+        steps[s]=py.my_move()
+        s++
         if py.is_gameover() {
           pl("You win")
         } else  {
-          py.you_move()
+          steps[s]=py.you_move()
+          s++
           if py.is_gameover() {
             pl("I win")
           }
@@ -271,6 +287,7 @@ func main(){
     }
 
     pl("Game Over")
+    pl("Game Result:", steps)
     pl("Do you want to play again(y/n)?")
     ans,_ = reader.ReadByte()
     _,_ = reader.ReadByte()
