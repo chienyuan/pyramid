@@ -125,7 +125,7 @@ func (py pyramid ) display(){
 func (py *pyramid ) human_move()  int{
   pl := fmt.Println
   p  := fmt.Print
-  var valid_moves [] int = py.gen_valid_moves()
+  var valid_moves [] int = py.board.gen_valid_moves()
   p("Please enter your move (A-N)? ")
   reader := bufio.NewReader(os.Stdin)
   var str string
@@ -137,7 +137,7 @@ func (py *pyramid ) human_move()  int{
     pl("len(str)=",len(str))
     // only allow pick 1,2,3 token
     var valid bool
-    move,valid =  py.is_valid_move(str,valid_moves)
+    move,valid =  is_valid_move(str,valid_moves)
     if valid {
       break
     }
@@ -162,11 +162,12 @@ func (py *pyramid) minimax(pos int) int {
   }
 
 
+
 }
 
 func (py *pyramid) compute_move(play bool) int{
   p := fmt.Println
-  var valid_moves [] int = py.gen_valid_moves()
+  var valid_moves [] int = py.board.gen_valid_moves()
 
   
 
@@ -197,17 +198,19 @@ func (py *pyramid) compute_move(play bool) int{
   return move
 }
 
-func (py pyramid) is_valid_move ( str string, valid_moves []int) ( int,bool ) {
+func is_valid_move ( str string, valid_moves []int) ( int,bool ) {
     if len(str) < 0 || len(str) > 3 { 
       return 0,false
     }
 
     var move int
+    // conver string to move value
     for _, r := range str {
       move += int( math.Pow(2,float64(r - 65) ) )
     }
     fmt.Println("move=",move)
 
+    // check if the value in valid_moves
     for _,r := range valid_moves {
       if move == r {
         return move ,true
@@ -217,7 +220,7 @@ func (py pyramid) is_valid_move ( str string, valid_moves []int) ( int,bool ) {
   return move,false
 }
 
-func (py *pyramid) gen_valid_moves() []int{
+func (b board) gen_valid_moves() []int{
   //    0
   //   1 2
   //  3 4 5
@@ -241,7 +244,7 @@ func (py *pyramid) gen_valid_moves() []int{
   var j = 0
   for i = 0; i < 15; i++ {
     //  need to skip already set token
-    if py.board.get(i) == 0 {
+    if b.get(i) == 0 {
       arr[j] = int(math.Pow(2,float64(i)) )
       j ++
     }
@@ -249,7 +252,7 @@ func (py *pyramid) gen_valid_moves() []int{
 
   // two token move
   for _, r := range temp2 {
-    if py.board.get(r[0]) == 0 && py.board.get(r[1]) == 0  {
+    if b.get(r[0]) == 0 && b.get(r[1]) == 0  {
       arr[j] = int(math.Pow(2,float64(r[0])) + math.Pow(2,float64(r[1])))
       j = j + 1
     }
@@ -257,7 +260,7 @@ func (py *pyramid) gen_valid_moves() []int{
 
   // three token move
   for _, r := range temp3 {
-    if py.board.get(r[0]) == 0 && py.board.get(r[1]) == 0 && py.board.get(r[2]) == 0 {
+    if b.get(r[0]) == 0 && b.get(r[1]) == 0 && b.get(r[2]) == 0 {
       arr[j] = int(math.Pow(2,float64(r[0])) +
                             math.Pow(2,float64(r[1])) +
                             math.Pow(2,float64(r[2])))
@@ -267,7 +270,6 @@ func (py *pyramid) gen_valid_moves() []int{
   // slice the array
   valid_arr := arr[:j]
   sort.Ints(valid_arr)
-  //py.valid_moves = valid_arr
   var valid_moves[]int = valid_arr
   fmt.Println("valid_moves=",valid_moves)
   return valid_moves
@@ -329,8 +331,6 @@ func play(){
   pl := fmt.Println
 
   py := pyramid{}
-  pl("py.gen_valid_moves()=")
-  //var valid_moves[] int = py.gen_valid_moves()
 
 	pl("Welcome to Pyramid game ")
 	pl("The Rules of Pyramid: Players alternate take out one to three ")
