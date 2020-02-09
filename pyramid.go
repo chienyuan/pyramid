@@ -7,6 +7,7 @@ import (
   "math"
   "math/rand"
   "sort"
+  //"github.com/goml/gobrain"
   //"strings"
 )
 
@@ -55,12 +56,31 @@ func (b *board) set(pos int) {
   b.val |= v
 }
 
+func (b *board) unset(pos int) {
+  v := int(math.Pow(2,float64(pos)))
+  b.val ^= v 
+}
+
 func (b *board) addvals(move int) {
   b.val += move
 }
 
 func (b board) vals() int {
   return b.val
+}
+
+// after play pos , it only got one token left?
+func (b board) last_token(pos int) bool {
+  b.set(pos)
+  var last bool
+  for i:= 0 ; i < 15 ; i++ {
+    if b.val == int(math.Pow(2,float64(i))) {
+      last = true
+      break
+    }
+  }
+  b.unset(pos)
+  return last
 }
 
 func (b *board) reset() {
@@ -131,6 +151,49 @@ func (py *pyramid ) human_move()  int{
 
   py.display()
 
+  return move
+}
+
+func (py *pyramid) minimax(pos int) int {
+  if py.board.last_token(pos) {
+    return 1
+  } else {
+    return 0
+  }
+
+
+}
+
+func (py *pyramid) compute_move(play bool) int{
+  p := fmt.Println
+  py.gen_valid_moves()
+
+  
+
+  // TODO: add AI logic here
+  var pick int = -1
+  for i,pos := range py.valid_moves {
+    if py.minimax(pos) == 1 {
+      pick = i
+      p("winning pick:" , pick)
+      break
+    }
+  } 
+
+  // random move
+  if pick == -1 {
+    p("random pick:" , pick)
+    pick = rand.Intn(len(py.valid_moves))
+  }
+
+  var move int = py.valid_moves[pick]
+
+  if play {
+    p("len(valid_moves)",len(py.valid_moves))
+    p("my move valid_moves[", pick ,"]=",move)
+  }
+  py.board.addvals(move)
+  py.display()
   return move
 }
 
@@ -209,22 +272,6 @@ func (py *pyramid) gen_valid_moves() {
 }
 
 
-func (py *pyramid) compute_move(play bool) int{
-  p := fmt.Println
-  py.gen_valid_moves()
-
-  // TODO: add AI logic here
-  
-  pick := rand.Intn(len(py.valid_moves))
-  var move int = py.valid_moves[pick]
-  if play {
-    p("len(valid_moves)",len(py.valid_moves))
-    p("my move valid_moves[", pick ,"]=",move)
-  }
-  py.board.addvals(move)
-  py.display()
-  return move
-}
 
 func (py pyramid) is_gameover() bool {
   for i:=0 ; i < 15 ; i++ {
@@ -262,15 +309,18 @@ func gen() (map[int]int,bool) {
 
 func main(){
 
-  pl := fmt.Println
-  games := make(map[int] map[int]int)
-  var win bool
-  for i:=0 ; i < 100 ; i++ {
-    games[i],win = gen()
+  var train bool 
+  if train {
+    pl := fmt.Println
+   games := make(map[int] map[int]int)
+   var win bool
+   for i:=0 ; i < 100 ; i++ {
+     games[i],win = gen()
+   }
+   pl("games: win=",win," steps",games)
   }
-  pl("games: win=",win," steps",games)
 
-  //play()
+  play()
 }
 
 func play(){
@@ -300,7 +350,7 @@ func play(){
         steps[s]= py.human_move();
         s++
         if py.is_gameover() {
-          pl("I win")
+          pl("You lose,I win!!!")
         } else {
           steps[s]=py.compute_move(true)
           s++
@@ -320,7 +370,7 @@ func play(){
           steps[s]=py.human_move()
           s++
           if py.is_gameover() {
-            pl("I win")
+            pl("You lose,I win!!")
           }
         }
       }
