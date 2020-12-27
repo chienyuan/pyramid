@@ -210,7 +210,7 @@ void Game::MoveGen(NODE *p, int turn,unsigned myBoard)
 			if(count==MAX_SIZE_MEM-1)  // for debug using
 			{
 				#ifdef DEBUG
-					cerr<<"memmory loack"<<std::endl;
+					cerr<<"memmory lack"<<std::endl;
 					memlack=1;    // memory lack
 				#endif
 				return;
@@ -266,7 +266,9 @@ void Game::UnMoveGen(NODE *p, int turn,unsigned myBoard)
 	}
 #ifdef DEBUG
 	std::cout<<std::endl<<"board="<<board<<" redundace="<<r<<std::endl;
+#ifdef MSDOS
 	getch();
+#endif
 #endif
 
 }
@@ -576,8 +578,8 @@ unsigned Game::Rotate(int angle, unsigned int step)
 
 void Game::MyTest()
 {
-	NODE w;
-	w.step=1;
+	//NODE w;
+	//w.step=1;
 	
 	board=(unsigned)pow(2,14)-1;
 	board=0;

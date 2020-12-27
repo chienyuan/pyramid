@@ -1,10 +1,10 @@
 #Right now the makefile only for linux
-VER=0.1
+VER=0.2
 CC=g++
 
 FILES = Game.cpp pyramid.cpp
 
-FLAGS := -Wall -O 
+FLAGS := -Wall -O  -DDEBUG
 
 #OS = MSDOS
 OS = LINUX
